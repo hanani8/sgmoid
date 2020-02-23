@@ -1,0 +1,25 @@
+{
+  "name": "sgmoid",
+  "version": "1.0.0",
+  "description": "End-to-End Development Challenge",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jai Hanani",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/datastore": "^5.0.6",
+    "@google-cloud/storage": "^4.3.1",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "http-client": "^4.3.1",
+    "mongoose": "^5.9.2",
+    "multer": "^1.4.2",
+    "path": "^0.12.7",
+    "pug": "^2.0.4",
+    "request": "^2.88.2",
+    "util": "^0.12.1"
+  }
+}

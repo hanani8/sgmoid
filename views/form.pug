@@ -1,0 +1,11 @@
+doctype html
+html(lang='en')
+ head
+    title Send Images!
+ body
+   form(method='POST', action='/uploaddir', enctype="multipart/form-data")
+     <input type="file" name="files" id="ctrl" webkitdirectory directory multiple/>
+     input(type="submit")
+   form(method='POST', action='/upload', enctype="multipart/form-data")
+     <input type='file' name='file'>
+     input(type='submit')
