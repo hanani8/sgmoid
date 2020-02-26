@@ -3,4 +3,3 @@ runtime: nodejs10
 
 env_variables:
   GCLOUD_STORAGE_BUCKET: sgmoid-images
-  GOOGLE_APPLICATION_CREDENTIALS: "/home/hanani8/Projects/sgmoid/sgmoid-8dcd415c2382.json"

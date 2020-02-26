@@ -8,6 +8,7 @@ var path = require('path');
 var request = require('request');
 var bodyParser = require('body-parser');
 const fs = require('fs');
+
 //Imports Google Cloud Node.js client library
 const {Storage} = require('@google-cloud/storage');
 const {Datastore} = require('@google-cloud/datastore');
@@ -19,29 +20,40 @@ app.use(bodyParser.urlencoded({ extended:true }))
 //Creates a Client
 const bucketName = 'sgmoid-images';
 const gc = new Storage(
-   {
+      {
    keyFilename: path.join(__dirname,'./sgmoid-caf583f7b717.json'),
    projectId: 'sgmoid'
-}
-);
+      }
+                     );
 const gcbucket = gc.bucket(bucketName);
 
 const multer = new Multer({
    storage:Multer.memoryStorage(),
    limits: {
       fileSize: 5 * 1024 * 1024
-   },
+           },
    preservePath: true
-})
+                          })
 
 let Files = [];
 let FilesfromFolder = [];
 
-const datastore = new Datastore();
+const datastore = new Datastore({
+   keyFilename: path.join(__dirname,'./sgmoid-3ebacff9963e.json'),
+   projectId:'sgmoid',
+                                });
+
+const insertVisit = visit => {
+   return datastore.save({
+     key: datastore.key('user'),
+     data: visit,
+                         });
+                             };
 
 app.get('/',function(req,res){
    res.render('form');
 })
+
 app.post('/upload',multer.single('file'), (req,res,next) => {
    if(!req.file) {
       res.status(400).send('No file uploaded')
@@ -63,9 +75,19 @@ app.post('/upload',multer.single('file'), (req,res,next) => {
         }
       }
     };
-    request(options, function (error, response) { 
+     request(options, async function (error, response) { 
       if (error) throw new Error(error);
-      console.log(response.body);
+      const prediction = {
+         data: response.body
+      }
+      try{
+         await insertVisit(prediction);
+         console.log(response.body);
+         console.log(prediction);
+      } catch(error) {
+         next(error);
+      }
+      
     });
 
    Files.push(req.file.filename);
@@ -74,6 +96,9 @@ app.post('/upload',multer.single('file'), (req,res,next) => {
    const blob = gcbucket.file(req.file.originalname);
    const blobStream = blob.createWriteStream({
       resumable: false,
+      metadata:{
+         contentType: "image/jpeg"
+      }
    });
 
    blobStream.on('error', err => {
@@ -119,15 +144,27 @@ app.post('/uploaddir', multer.array('files'), (req,res) => {
            }
          }
        };
-       request(options, function (error, response) { 
+       request(options, async function (error, response) { 
          if (error) throw new Error(error);
-         console.log(response.body);
-       });
+         const prediction = {
+            data : response.body
+         }
+         try{
+             await insertVisit(prediction);
+             console.log(prediction);
+             console.log(response.body);
+         } catch(error) {
+            next(error);
+         }     
+         });
    
 
       const blob = gcbucket.file(a.originalname);
       const blobStream = blob.createWriteStream({
-         resumable:false
+         resumable:false,
+         metadata:{
+            contentType: "image/jpeg"
+         }
       });
 
       blobStream.on('error', err => {
@@ -143,8 +180,20 @@ app.post('/uploaddir', multer.array('files'), (req,res) => {
       blobStream.end(a.buffer);
    })
    console.log(FilesfromFolder);
-
 })
+
+app.get('/getpredictions', async function(req,res){
+   const query = datastore.createQuery('user');
+   try{
+      let predictions = await datastore.runQuery(query);
+      res.send(predictions);
+   }
+   catch(error){
+      next(error);
+   }
+});
+
+
 
 //Listen to app-engine specified port or 8800;
 const PORT = process.env.PORT || 8800;
@@ -154,6 +203,7 @@ app.listen(PORT, () => {
 
 
 //If the browser is not chrome
+
 //   var directoryPath = req.files.path;
   
 //   const fileList = [];
